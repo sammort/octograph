@@ -75,11 +75,15 @@ def store_series(connection, series, metrics, rate_data):
         rate_cost = rate_data[rate]
         cost = consumption * rate_cost
         standing_charge = rate_data['standing_charge'] / 48  # 30 minute reads
+        total_cost = cost + standing_charge
         fields = {
             'consumption': consumption,
             'cost': cost,
-            'total_cost': cost + standing_charge,
+            'total_cost': total_cost,
         }
+
+        #click.echo(f' On Go tariff. Consumption: {consumption} kWh. Cost: {cost} with standing charge: {total_cost}')
+
         if agile_data:
             agile_standing_charge = rate_data['agile_standing_charge'] / 48
             agile_unit_rate = agile_rates.get(
@@ -87,18 +91,24 @@ def store_series(connection, series, metrics, rate_data):
                 rate_data[rate]  # cludge, use Go rate during DST changeover
             )
             agile_cost = agile_unit_rate * consumption
+            agile_total_cost = agile_cost + agile_standing_charge
             fields.update({
                 'agile_rate': agile_unit_rate,
                 'agile_cost': agile_cost,
-                'agile_total_cost': agile_cost + agile_standing_charge,
+                'agile_total_cost': agile_total_cost,
             })
+
+            #click.echo(f' On Agile tariff. Consumption: {consumption} kWh. Cost: {agile_cost} @ {agile_unit_rate}p with standing charge: {agile_total_cost}')
         return fields
 
     def tags_for_measurement(measurement):
         period = maya.parse(measurement['interval_end'])
         time = period.datetime().strftime('%H:%M')
+        active_rate = active_rate_field(measurement)
+
+        #click.echo(f' On rate: {active_rate}')
         return {
-            'active_rate': active_rate_field(measurement),
+            'active_rate': active_rate,
             'time_of_day': time,
         }
 
@@ -111,6 +121,7 @@ def store_series(connection, series, metrics, rate_data):
         }
         for measurement in metrics
     ]
+
     connection.write_points(measurements)
 
 
@@ -208,15 +219,15 @@ def cmd(config_file, from_date, to_date):
     click.echo(f' {len(rate_data["electricity"]["agile_unit_rates"])} rates.')
     store_series(influx, 'electricity', e_consumption, rate_data['electricity'])
 
-    click.echo(
-        f'Retrieving gas data for {from_iso} until {to_iso}...',
-        nl=False
-    )
-    g_consumption = retrieve_paginated_data(
-        api_key, g_url, from_iso, to_iso
-    )
-    click.echo(f' {len(g_consumption)} readings.')
-    store_series(influx, 'gas', g_consumption, rate_data['gas'])
+    #click.echo(
+    #    f'Retrieving gas data for {from_iso} until {to_iso}...',
+    #    nl=False
+    #)
+    #g_consumption = retrieve_paginated_data(
+    #    api_key, g_url, from_iso, to_iso
+    #)
+    #click.echo(f' {len(g_consumption)} readings.')
+    #store_series(influx, 'gas', g_consumption, rate_data['gas'])
 
 
 if __name__ == '__main__':
