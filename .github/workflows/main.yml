@@ -20,4 +20,4 @@ jobs:
           # GitHub Repository Token to log in using.
           access_token: ${{ secrets.GITHUB_TOKEN }}
           # Where should GitHub Docker find the Dockerfile, relative to the root of the repository.
-          context: ./app/Dockerfile
+          context: /app/Dockerfile
