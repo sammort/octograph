@@ -19,3 +19,5 @@ jobs:
         with:
           # GitHub Repository Token to log in using.
           access_token: ${{ secrets.GITHUB_TOKEN }}
+          tags: latest
+          image_name: octograph
