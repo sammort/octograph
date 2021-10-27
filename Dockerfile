@@ -4,10 +4,10 @@ LABEL maintainer="Stephen Newey <github@s-n.me>"
 
 WORKDIR /usr/src/app
 
-COPY requirements.txt ./
+COPY /app/requirements.txt ./
 
 RUN pip install -r requirements.txt
 
-COPY octopus_to_influxdb.py ./
+COPY /app/octopus_to_influxdb.py ./
 
 ENTRYPOINT [ "python", "./octopus_to_influxdb.py" ]
